@@ -79,6 +79,10 @@ public class PushoverRestClient implements PushoverClient {
 
         if (!MessagePriority.NORMAL.equals(msg.getPriority())) {
             addPairIfNotNull(nvps, "priority", msg.getPriority());
+            if (MessagePriority.EMERGENCY.equals(msg.getPriority())) {
+                addPairIfNotNull(nvps, "retry", msg.getEmergenyRetry());
+                addPairIfNotNull(nvps, "expire", msg.getEmergencyExpire());
+            }
         }
 
         post.setEntity(new UrlEncodedFormEntity(nvps, (msg.getCharset() == null ? Charset.defaultCharset() : msg.getCharset())));

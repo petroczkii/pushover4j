@@ -47,6 +47,22 @@ public class PushoverMessage {
             return this;
         }
 
+        /**
+         * The expire parameter specifies how many seconds your notification will continue to be retried for (every retry seconds).
+         */
+        public Builder setEmergencyExpire(Integer emergencyExpire) {
+            msg.emergencyExpire = emergencyExpire;
+            return this;
+        }
+
+        /**
+         * The retry parameter specifies how often (in seconds) the Pushover servers will send the same notification to the user.
+         */
+        public Builder setEmergenyRetry(Integer emergenyRetry) {
+            msg.emergenyRetry = emergenyRetry;
+            return this;
+        }
+
         public Builder setHtmlMessage(String htmlMessage) {
             msg.htmlMessage = htmlMessage;
             return this;
@@ -146,6 +162,10 @@ public class PushoverMessage {
 
     private Charset charset;
 
+    private Integer emergenyRetry;
+
+    private Integer emergencyExpire;
+
     private PushoverMessage() {
         // use the builder
     }
@@ -160,6 +180,14 @@ public class PushoverMessage {
 
     public String getDevice() {
         return device;
+    }
+
+    public Integer getEmergencyExpire() {
+        return emergencyExpire;
+    }
+
+    public Integer getEmergenyRetry() {
+        return emergenyRetry;
     }
 
     public String getHtmlMessage() {
