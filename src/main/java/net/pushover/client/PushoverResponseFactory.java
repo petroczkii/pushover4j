@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
@@ -17,39 +16,18 @@ import com.google.gson.JsonSyntaxException;
  */
 public class PushoverResponseFactory {
 
+    // {"sounds":{"id":"name",...},"status":1}
+    private static class SoundResponse {
+        Map<String, String> sounds;
+    }
+
     private static final Gson GSON = new Gson();
 
     public static final String REQUEST_ID_HEADER = "X-Request-Id";
 
-    public static Status createStatus(HttpResponse response) throws IOException {
-
-        if (response == null || response.getEntity() == null) {
-            throw new IOException("unreadable response!");
-        }
-
-        final String body = EntityUtils.toString(response.getEntity());
-
-        ResponseModel m;
-
-        try {
-            m = GSON.fromJson(body, ResponseModel.class);
-        } catch (JsonSyntaxException e) {
-            throw new IOException(e.getCause());
-        }
-
-        final Status toReturn = new Status(m.status);
-        final Header responseId = response.getFirstHeader(REQUEST_ID_HEADER);
-
-        if (responseId != null) {
-            toReturn.setRequestId(responseId.getValue());
-        }
-
-        return toReturn;
-    }
-
     public static Set<PushOverSound> createSoundSet(HttpResponse response) throws IOException {
 
-        if (response == null || response.getEntity() == null) {
+        if ((response == null) || (response.getEntity() == null)) {
             throw new IOException("unreadable response!");
         }
 
@@ -71,13 +49,23 @@ public class PushoverResponseFactory {
         return sounds;
     }
 
-    // {"status":1}
-    private static class ResponseModel {
-        int status;
-    }
+    public static Status createStatus(HttpResponse response) throws IOException {
 
-    // {"sounds":{"id":"name",...},"status":1}
-    private static class SoundResponse {
-        Map<String, String> sounds;
+        if ((response == null) || (response.getEntity() == null)) {
+            throw new IOException("unreadable response!");
+        }
+
+        final String body = EntityUtils.toString(response.getEntity());
+
+        Status status = null;
+
+        try {
+            status = GSON.fromJson(body, Status.class);
+            status.setRawJsonResponse(body);
+        } catch (JsonSyntaxException e) {
+            throw new IOException(e.getCause());
+        }
+
+        return status;
     }
 }

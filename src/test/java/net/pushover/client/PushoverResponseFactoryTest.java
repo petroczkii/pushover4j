@@ -27,44 +27,6 @@ public class PushoverResponseFactoryTest {
         response = mock(HttpResponse.class);
     }
 
-    @Test(expected = IOException.class)
-    public void testNullStausResponse() throws Exception {
-        assertNull(PushoverResponseFactory.createStatus(null));
-    }
-
-    @Test(expected = IOException.class)
-    public void testNullEntityStatusResponse() throws Exception {
-        assertNull(PushoverResponseFactory.createStatus(response));
-    }
-
-    @Test(expected = IOException.class)
-    public void testMalformedStatusResponse() throws IOException {
-        when(response.getEntity()).thenReturn(new StringEntity("{"));
-        PushoverResponseFactory.createStatus(response);        
-    }
-    
-    @Test
-    public void testEmptyStatus() throws IOException {
-        when(response.getEntity()).thenReturn(new StringEntity("{}"));
-        Status status = PushoverResponseFactory.createStatus(response);
-        assertNotNull(status);
-    }
-
-    @Test
-    public void testOKStatus() throws IOException {
-        final String expectedRequestId = "1234";
-
-        when(response.getEntity()).thenReturn(new StringEntity("{\"status\":1}"));
-
-        when(response.getFirstHeader(PushoverResponseFactory.REQUEST_ID_HEADER)).thenReturn(new BasicHeader(PushoverResponseFactory.REQUEST_ID_HEADER,
-                expectedRequestId));
-
-        final Status status = PushoverResponseFactory.createStatus(response);
-        assertNotNull(status);
-        assertEquals(status.getStatus(), 1);
-        assertEquals(status.getRequestId(), expectedRequestId);
-    }
-
     @Test
     public void testCreateSoundResponse() throws IOException {
 
@@ -73,15 +35,9 @@ public class PushoverResponseFactoryTest {
         final Set<PushOverSound> sounds = PushoverResponseFactory.createSoundSet(response);
         assertNotNull(sounds);
         assertFalse(sounds.isEmpty());
-        PushOverSound sound = sounds.iterator().next(); 
+        PushOverSound sound = sounds.iterator().next();
         assertEquals(sound.getId(), "id");
         assertEquals(sound.getName(), "name");
-    }
-
-    @Test(expected = IOException.class)
-    public void testMalformedCreateSoundResponse() throws IOException {
-        when(response.getEntity()).thenReturn(new StringEntity("{"));
-        PushoverResponseFactory.createSoundSet(response);        
     }
 
     @Test
@@ -91,7 +47,26 @@ public class PushoverResponseFactoryTest {
         assertNotNull(sounds);
         assertTrue(sounds.isEmpty());
     }
-    
+
+    @Test
+    public void testEmptyStatus() throws IOException {
+        when(response.getEntity()).thenReturn(new StringEntity("{}"));
+        Status status = PushoverResponseFactory.createStatus(response);
+        assertNotNull(status);
+    }
+
+    @Test(expected = IOException.class)
+    public void testMalformedCreateSoundResponse() throws IOException {
+        when(response.getEntity()).thenReturn(new StringEntity("{"));
+        PushoverResponseFactory.createSoundSet(response);
+    }
+
+    @Test(expected = IOException.class)
+    public void testMalformedStatusResponse() throws IOException {
+        when(response.getEntity()).thenReturn(new StringEntity("{"));
+        PushoverResponseFactory.createStatus(response);
+    }
+
     @Test(expected = IOException.class)
     public void testNullCreateSoundResponse() throws Exception {
         assertNull(PushoverResponseFactory.createSoundSet(null));
@@ -100,5 +75,30 @@ public class PushoverResponseFactoryTest {
     @Test(expected = IOException.class)
     public void testNullEntityCreateSoundResponse() throws Exception {
         assertNull(PushoverResponseFactory.createSoundSet(response));
+    }
+
+    @Test(expected = IOException.class)
+    public void testNullEntityStatusResponse() throws Exception {
+        assertNull(PushoverResponseFactory.createStatus(response));
+    }
+
+    @Test(expected = IOException.class)
+    public void testNullStausResponse() throws Exception {
+        assertNull(PushoverResponseFactory.createStatus(null));
+    }
+
+    @Test
+    public void testOKStatus() throws IOException {
+        final String expectedRequestId = "1234";
+
+        when(response.getEntity()).thenReturn(new StringEntity("{\"status\":1}"));
+
+        when(response.getFirstHeader(PushoverResponseFactory.REQUEST_ID_HEADER))
+                .thenReturn(new BasicHeader(PushoverResponseFactory.REQUEST_ID_HEADER, expectedRequestId));
+
+        final Status status = PushoverResponseFactory.createStatus(response);
+        assertNotNull(status);
+        assertEquals(status.getStatus(), 1);
+        assertEquals(status.getRequest(), expectedRequestId);
     }
 }

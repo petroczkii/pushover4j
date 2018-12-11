@@ -18,92 +18,96 @@ import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Implementation of {@link PushoverClient}
- * 
+ *
  * @author Sean Scanlon <sean.scanlon@gmail.com>
- * 
+ *
  * @since Dec 18, 2012
  */
 public class PushoverRestClient implements PushoverClient {
 
-	public static String PUSH_MESSAGE_URL = "https://api.pushover.net/1/messages.json";
-	public static final String SOUND_LIST_URL = "https://api.pushover.net/1/sounds.json";
+    public static String PUSH_MESSAGE_URL = "https://api.pushover.net/1/messages.json";
+    public static final String SOUND_LIST_URL = "https://api.pushover.net/1/sounds.json";
 
-	private static final HttpUriRequest SOUND_LIST_REQUEST = new HttpGet(SOUND_LIST_URL);
+    private static final HttpUriRequest SOUND_LIST_REQUEST = new HttpGet(SOUND_LIST_URL);
 
-	private HttpClient httpClient = HttpClients.custom().useSystemProperties().build();
+    private static final AtomicReference<Set<PushOverSound>> SOUND_CACHE = new AtomicReference<Set<PushOverSound>>();
 
-	private static final AtomicReference<Set<PushOverSound>> SOUND_CACHE = new AtomicReference<Set<PushOverSound>>();
+    private HttpClient httpClient = HttpClients.custom().useSystemProperties().build();
 
-	@Override
-	public Status pushMessage(PushoverMessage msg) throws PushoverException {
+    @Override
+    public Set<PushOverSound> getSounds() throws PushoverException {
 
-		final HttpPost post = new HttpPost(PUSH_MESSAGE_URL);
+        Set<PushOverSound> cachedSounds = SOUND_CACHE.get();
+        if (cachedSounds == null) {
+            try {
+                cachedSounds = PushoverResponseFactory.createSoundSet(httpClient.execute(SOUND_LIST_REQUEST));
+            } catch (Exception e) {
+                throw new PushoverException(e.getMessage(), e.getCause());
+            }
+            SOUND_CACHE.set(cachedSounds);
+        }
+        return cachedSounds;
+    }
 
-		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    @Override
+    public Status pushMessage(PushoverMessage msg) throws PushoverException {
 
-		nvps.add(new BasicNameValuePair("token", msg.getApiToken()));
-		nvps.add(new BasicNameValuePair("user", msg.getUserId()));
-		if (msg.getHtmlMessage() != null && msg.getHtmlMessage().trim().length() > 0) {
-			nvps.add(new BasicNameValuePair("message", msg.getHtmlMessage()));
-		} else {
-			nvps.add(new BasicNameValuePair("message", msg.getMessage()));
-		}
+        final HttpPost post = new HttpPost(PUSH_MESSAGE_URL);
 
-		addPairIfNotNull(nvps, "title", msg.getTitle());
+        final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
-		addPairIfNotNull(nvps, "url", msg.getUrl());
-		addPairIfNotNull(nvps, "url_title", msg.getTitleForURL());
+        nvps.add(new BasicNameValuePair("token", msg.getApiToken()));
+        nvps.add(new BasicNameValuePair("user", msg.getUserId()));
+        if ((msg.getHtmlMessage() != null) && (msg.getHtmlMessage().trim().length() > 0)) {
+            nvps.add(new BasicNameValuePair("message", msg.getHtmlMessage()));
+        } else {
+            nvps.add(new BasicNameValuePair("message", msg.getMessage()));
+        }
 
-		addPairIfNotNull(nvps, "device", msg.getDevice());
-		addPairIfNotNull(nvps, "timestamp", msg.getTimestamp());
-		addPairIfNotNull(nvps, "sound", msg.getSound());
+        addPairIfNotNull(nvps, "title", msg.getTitle());
 
-		if (msg.getHtmlMessage() != null && msg.getHtmlMessage().trim().length() > 0) {
-			addPairIfNotNull(nvps, "html", "1");
-		}
+        addPairIfNotNull(nvps, "url", msg.getUrl());
+        addPairIfNotNull(nvps, "url_title", msg.getTitleForURL());
 
-		if (!MessagePriority.NORMAL.equals(msg.getPriority())) {
-			addPairIfNotNull(nvps, "priority", msg.getPriority());
-		}
+        addPairIfNotNull(nvps, "device", msg.getDevice());
+        addPairIfNotNull(nvps, "timestamp", msg.getTimestamp());
+        addPairIfNotNull(nvps, "sound", msg.getSound());
 
-		post.setEntity(new UrlEncodedFormEntity(nvps, Charset.defaultCharset()));
+        if ((msg.getHtmlMessage() != null) && (msg.getHtmlMessage().trim().length() > 0)) {
+            addPairIfNotNull(nvps, "html", "1");
+        }
 
-		try {
-			HttpResponse response = httpClient.execute(post);
-			return PushoverResponseFactory.createStatus(response);
-		} catch (Exception e) {
-			throw new PushoverException(e.getMessage(), e.getCause());
-		}
-	}
+        if (!MessagePriority.NORMAL.equals(msg.getPriority())) {
+            addPairIfNotNull(nvps, "priority", msg.getPriority());
+        }
 
-	@Override
-	public Set<PushOverSound> getSounds() throws PushoverException {
+        post.setEntity(new UrlEncodedFormEntity(nvps, (msg.getCharset() == null ? Charset.defaultCharset() : msg.getCharset())));
 
-		Set<PushOverSound> cachedSounds = SOUND_CACHE.get();
-		if (cachedSounds == null) {
-			try {
-				cachedSounds = PushoverResponseFactory.createSoundSet(httpClient.execute(SOUND_LIST_REQUEST));
-			} catch (Exception e) {
-				throw new PushoverException(e.getMessage(), e.getCause());
-			}
-			SOUND_CACHE.set(cachedSounds);
-		}
-		return cachedSounds;
-	}
+        try {
+            HttpResponse response = httpClient.execute(post);
+            Status status = PushoverResponseFactory.createStatus(response);
+            if (status != null) {
+                status.setRequestParameters(nvps.toString());
+            }
+            return status;
+        } catch (Exception e) {
+            throw new PushoverException(e.getMessage(), e.getCause());
+        }
+    }
 
-	private void addPairIfNotNull(List<NameValuePair> nvps, String key, Object value) {
-		if (value != null) {
-			nvps.add(new BasicNameValuePair(key, value.toString()));
-		}
-	}
+    /**
+     * Optionally provide an alternative {@link HttpClient}
+     *
+     * @param httpClient
+     */
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
-	/**
-	 * Optionally provide an alternative {@link HttpClient}
-	 * 
-	 * @param httpClient
-	 */
-	public void setHttpClient(HttpClient httpClient) {
-		this.httpClient = httpClient;
-	}
+    private void addPairIfNotNull(List<NameValuePair> nvps, String key, Object value) {
+        if (value != null) {
+            nvps.add(new BasicNameValuePair(key, value.toString()));
+        }
+    }
 
 }

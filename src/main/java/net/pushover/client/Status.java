@@ -1,32 +1,74 @@
 package net.pushover.client;
 
+import java.util.List;
+
 /**
  * API response object
  */
 public class Status {
 
-    private final Integer status;
+    private Integer status;
 
-    private String requestId;
+    private String request;
 
-    public Status(Integer status) {
-        this.status = status;
+    private String user;
+
+    private List<String> errors;
+
+    private String requestParameters;
+
+    private String rawJsonResponse;
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    public String getRawJsonResponse() {
+        return rawJsonResponse;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public String getRequestParameters() {
+        return requestParameters;
     }
 
     public int getStatus() {
         return status;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public String getUser() {
+        return user;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+
+    public void setRawJsonResponse(String rawJsonResponse) {
+        this.rawJsonResponse = rawJsonResponse;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public void setRequestParameters(String requestParameters) {
+        this.requestParameters = requestParameters;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override
     public String toString() {
-        return String.format("status: %s, requestId: %s", status != null ? String.valueOf(status) : "??", requestId);
+        return String.format("status: %s, requestId: %s", status != null ? String.valueOf(status) : "??", request);
     }
 }

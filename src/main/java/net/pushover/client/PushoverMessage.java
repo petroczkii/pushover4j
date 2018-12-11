@@ -1,190 +1,201 @@
 package net.pushover.client;
 
+import java.nio.charset.Charset;
+
 /**
- * 
+ *
  * @author Sean Scanlon <sean.scanlon@gmail.com>
- * 
+ *
  * @since Dec 18, 2012
  */
 public class PushoverMessage {
 
-	private String apiToken;
+    public static class Builder {
 
-	private String userId;
+        private PushoverMessage msg;
 
-	private String message;
+        public Builder() {
+            msg = new PushoverMessage();
+        }
 
-	private String htmlMessage;
+        public PushoverMessage build() {
+            // TODO: validate message!
+            return msg;
+        }
 
-	private String device;
+        /**
+         * (required) - your application's API token
+         */
+        public Builder setApiToken(String apiToken) {
+            msg.apiToken = apiToken;
+            return this;
+        }
 
-	private String title;
+        /**
+         * (optional) - charset for your message. if not set then the program uses the default.
+         */
+        public Builder setCharset(Charset charset) {
+            msg.charset = charset;
+            return this;
+        }
 
-	private String url;
+        /**
+         * (optional) - your user's device identifier to send the message directly to that device, rather than all of the user's devices
+         */
+        public Builder setDevice(String device) {
+            msg.device = device;
+            return this;
+        }
 
-	private String titleForURL;
+        public Builder setHtmlMessage(String htmlMessage) {
+            msg.htmlMessage = htmlMessage;
+            return this;
+        }
 
-	private MessagePriority priority = MessagePriority.NORMAL;
+        /**
+         * (required) - your message
+         */
+        public Builder setMessage(String message) {
+            msg.message = message;
+            return this;
+        }
 
-	private Long timestamp;
+        /**
+         * (optional) - set to MessagePriority.HIGH to display as high-priority and bypass quiet hours, or MessagePriority.QUIET to always
+         * send as a quiet notification
+         */
+        public Builder setPriority(MessagePriority priority) {
+            msg.priority = priority;
+            return this;
+        }
 
-	private String sound;
+        /**
+         * (optional) - set to the name of one of the sounds supported by device clients to override the user's default sound choice
+         */
+        public Builder setSound(String sound) {
+            msg.sound = sound;
+            return this;
+        }
 
-	private PushoverMessage() {
-		// use the builder
-	}
+        /**
+         * (optional) - set to a Unix timestamp to have your message show with a particular time, rather than now
+         */
+        public Builder setTimestamp(Long timestamp) {
+            msg.timestamp = timestamp;
+            return this;
+        }
 
-	public static Builder builderWithApiToken(String token) {
-		return new Builder().setApiToken(token);
-	}
+        /**
+         * (optional) - your message's title, otherwise uses your app's name
+         */
+        public Builder setTitle(String title) {
+            msg.title = title;
+            return this;
+        }
 
-	public static class Builder {
+        /**
+         * (optional) - a title for your supplementary URL
+         */
+        public Builder setTitleForURL(String titleForURL) {
+            msg.titleForURL = titleForURL;
+            return this;
+        }
 
-		private PushoverMessage msg;
+        /**
+         * (optional) - a supplementary URL to show with your message
+         */
+        public Builder setUrl(String url) {
+            msg.url = url;
+            return this;
+        }
 
-		public Builder() {
-			msg = new PushoverMessage();
-		}
+        /**
+         * (required) - the user key (not e-mail address) of your user (or you), viewable when logged into the dashboard
+         */
+        public Builder setUserId(String userId) {
+            msg.userId = userId;
+            return this;
+        }
+    }
 
-		public PushoverMessage build() {
-			// TODO: validate message!
-			return msg;
-		}
+    public static Builder builderWithApiToken(String token) {
+        return new Builder().setApiToken(token);
+    }
 
-		/**
-		 * (required) - your application's API token
-		 */
-		public Builder setApiToken(String apiToken) {
-			msg.apiToken = apiToken;
-			return this;
-		}
+    private String apiToken;
 
-		/**
-		 * (required) - the user key (not e-mail address) of your user (or you),
-		 * viewable when logged into the dashboard
-		 */
-		public Builder setUserId(String userId) {
-			msg.userId = userId;
-			return this;
-		}
+    private String userId;
 
-		/**
-		 * (required) - your message
-		 */
-		public Builder setMessage(String message) {
-			msg.message = message;
-			return this;
-		}
+    private String message;
 
-		public Builder setHtmlMessage(String htmlMessage) {
-			msg.htmlMessage = htmlMessage;
-			return this;
-		}
+    private String htmlMessage;
 
-		/**
-		 * (optional) - your user's device identifier to send the message
-		 * directly to that device, rather than all of the user's devices
-		 */
-		public Builder setDevice(String device) {
-			msg.device = device;
-			return this;
-		}
+    private String device;
 
-		/**
-		 * (optional) - your message's title, otherwise uses your app's name
-		 */
-		public Builder setTitle(String title) {
-			msg.title = title;
-			return this;
-		}
+    private String title;
 
-		/**
-		 * (optional) - a supplementary URL to show with your message
-		 */
-		public Builder setUrl(String url) {
-			msg.url = url;
-			return this;
-		}
+    private String url;
 
-		/**
-		 * (optional) - a title for your supplementary URL
-		 */
-		public Builder setTitleForURL(String titleForURL) {
-			msg.titleForURL = titleForURL;
-			return this;
-		}
+    private String titleForURL;
 
-		/**
-		 * (optional) - set to MessagePriority.HIGH to display as high-priority
-		 * and bypass quiet hours, or MessagePriority.QUIET to always send as a
-		 * quiet notification
-		 */
-		public Builder setPriority(MessagePriority priority) {
-			msg.priority = priority;
-			return this;
-		}
+    private MessagePriority priority = MessagePriority.NORMAL;
 
-		/**
-		 * (optional) - set to a Unix timestamp to have your message show with a
-		 * particular time, rather than now
-		 */
-		public Builder setTimestamp(Long timestamp) {
-			msg.timestamp = timestamp;
-			return this;
-		}
+    private Long timestamp;
 
-		/**
-		 * (optional) - set to the name of one of the sounds supported by device
-		 * clients to override the user's default sound choice
-		 */
-		public Builder setSound(String sound) {
-			msg.sound = sound;
-			return this;
-		}
-	}
+    private String sound;
 
-	public String getApiToken() {
-		return apiToken;
-	}
+    private Charset charset;
 
-	public String getUserId() {
-		return userId;
-	}
+    private PushoverMessage() {
+        // use the builder
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getApiToken() {
+        return apiToken;
+    }
 
-	public String getDevice() {
-		return device;
-	}
+    public Charset getCharset() {
+        return charset;
+    }
 
-	public String getTitle() {
-		return title;
-	}
+    public String getDevice() {
+        return device;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public String getHtmlMessage() {
+        return htmlMessage;
+    }
 
-	public String getTitleForURL() {
-		return titleForURL;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public MessagePriority getPriority() {
-		return priority;
-	}
+    public MessagePriority getPriority() {
+        return priority;
+    }
 
-	public Long getTimestamp() {
-		return timestamp;
-	}
+    public String getSound() {
+        return sound;
+    }
 
-	public String getSound() {
-		return sound;
-	}
+    public Long getTimestamp() {
+        return timestamp;
+    }
 
-	public String getHtmlMessage() {
-		return htmlMessage;
-	}
+    public String getTitle() {
+        return title;
+    }
+
+    public String getTitleForURL() {
+        return titleForURL;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
 
 }
